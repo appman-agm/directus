@@ -10,34 +10,34 @@ env:
   ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
 
 jobs:
-  create-release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  # create-release:
+  #   name: Create Release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" --notes "Directus $GITHUB_REF_NAME"
+  #     - name: Create release
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: gh release create "$GITHUB_REF_NAME" --notes "Directus $GITHUB_REF_NAME"
 
-  publish-npm:
-    name: Publish to NPM
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  # publish-npm:
+  #   name: Publish to NPM
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-      - name: Prepare
-        uses: ./.github/actions/prepare
-        with:
-          registry: https://registry.npmjs.org
+  #     - name: Prepare
+  #       uses: ./.github/actions/prepare
+  #       with:
+  #         registry: https://registry.npmjs.org
 
-      - name: Publish packages to NPM
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm --recursive publish --access=public --no-git-checks
+  #     - name: Publish packages to NPM
+  #       env:
+  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #       run: pnpm --recursive publish --access=public --no-git-checks
 
   build-images:
     name: Build Images
