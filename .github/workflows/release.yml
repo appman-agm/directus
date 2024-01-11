@@ -4,6 +4,10 @@ on: push
 
 env:
   GHCR_IMAGE: ghcr.io/${{ github.repository }}
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DO_REG_ENDPOINT: ghcr.io
+  ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
 
 jobs:
   create-release:
@@ -41,6 +45,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Get Version
+        uses: sergeysova/jq-action@v2
+        id: version
+        with:
+          cmd: 'jq .version package.json -r'
+
+      - name: Prepare environment variable for batch script
+        run:
+          echo 'VERSION=${{ steps.version.outputs.value }}' >> $GITHUB_ENV && export VERSION=${{ env.VERSION }} &&
+          export DO_REG_ENDPOINT=${{ env.REGISTRY }} && export IMAGE_NAME=${{ github.repository }}
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v2
@@ -80,7 +95,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.GHCR_IMAGE }}:${{ env.VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
           push: true
