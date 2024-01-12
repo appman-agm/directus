@@ -40,6 +40,7 @@ jobs:
   #       run: pnpm --recursive publish --access=public --no-git-checks
 
   build-images:
+    runs-on: [self-hosted, arm64, multi]
     name: Build Images
     runs-on: ubuntu-latest
     steps:
