@@ -9,7 +9,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   DO_REG_ENDPOINT: ghcr.io
-  ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
 
 jobs:
   update_release_draft:
