@@ -10,17 +10,24 @@ env:
   ECR_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
 
 jobs:
-  create-release:
-    name: Create Release
+  update_release_draft:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Create release
+      - uses: actions/checkout@v2
+      - name: Get Version
+        uses: sergeysova/jq-action@v2
+        id: version
+        with:
+          cmd: 'jq .version package.json -r'
+      - name: Prepare environment variable for release-drafter
+        run: echo 'VERSION=${{ steps.version.outputs.value }}' >> $GITHUB_ENV
+      - uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter.yml
+          version: ${{ env.VERSION }}
+          publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" --notes "Directus $GITHUB_REF_NAME"
 
   build-images:
     name: Build Images
