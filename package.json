@@ -1,5 +1,5 @@
 {
-	"version": "1.1.0-vm-fix",
+	"version": "1.1.0-va-fix",
 	"name": "directus-monorepo",
 	"private": true,
 	"scripts": {
