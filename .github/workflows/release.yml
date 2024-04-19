@@ -37,7 +37,7 @@ jobs:
     steps:
       - name: Install build deps
         run: |
-          apt install g++ make python3
+          sudo apt install g++ make python3
 
       - name: Checkout repository
         uses: actions/checkout@v3
