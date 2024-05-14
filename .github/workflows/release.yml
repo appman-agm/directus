@@ -49,15 +49,8 @@ jobs:
           echo 'VERSION=${{ steps.version.outputs.value }}' >> $GITHUB_ENV && export VERSION=${{ env.VERSION }} &&
           export DO_REG_ENDPOINT=${{ env.REGISTRY }} && export IMAGE_NAME=${{ github.repository }}
 
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-          platforms: linux/amd64
-          append: |
-            - endpoint: ssh://ubuntu@github-runner1-x64
-              platforms: linux/amd64
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
