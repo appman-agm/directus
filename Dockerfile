@@ -4,9 +4,17 @@
 ## Build Packages
 
 FROM node:18-alpine3.18 AS builder
+ARG TARGETPLATFORM
 WORKDIR /directus
 
 ENV NODE_OPTIONS=--max-old-space-size=8192
+
+RUN <<EOF
+  if [ "$TARGETPLATFORM" = 'linux/arm64' ]; then
+    apk --no-cache add python3 build-base
+    ln -sf /usr/bin/python3 /usr/bin/python
+  fi
+EOF
 
 COPY package.json .
 RUN corepack enable && corepack prepare
