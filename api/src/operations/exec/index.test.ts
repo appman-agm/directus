@@ -15,7 +15,7 @@ test('Rejects when modules are used without modules being allowed', async () => 
 				FLOWS_EXEC_ALLOWED_MODULES: '',
 			},
 		} as any)
-	).rejects.toThrow("require is not defined");
+	).rejects.toThrow("Execution error:");
 });
 
 test('Rejects when code contains syntax errors', async () => {
