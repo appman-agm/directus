@@ -3,10 +3,10 @@
 ####################################################################################################
 ## Build Packages
 
-FROM node:18-alpine3.18 AS builder
+FROM node:22-alpine AS builder
 WORKDIR /directus
 
-ENV NODE_OPTIONS=--max-old-space-size=8192
+ENV NODE_OPTIONS="--max-old-space-size=8192"
 
 COPY package.json .
 RUN corepack enable && corepack prepare
@@ -17,6 +17,7 @@ COPY . .
 RUN pnpm install --recursive --offline --frozen-lockfile
 
 RUN : \
+	&& export NODE_OPTIONS="--max-old-space-size=8192" \
 	&& npm_config_workspace_concurrency=1 pnpm run build \
 	&& pnpm --filter directus deploy --prod dist \
 	&& cd dist \
@@ -30,7 +31,7 @@ RUN : \
 ####################################################################################################
 ## Create Production Image
 
-FROM node:18-alpine3.18 AS runtime
+FROM node:22-alpine AS runtime
 
 USER node
 

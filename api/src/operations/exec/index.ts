@@ -1,7 +1,6 @@
 import { defineOperationApi, toArray } from '@directus/utils';
 import { isBuiltin } from 'node:module';
-import type { NodeVMOptions } from 'vm2';
-import { NodeVM, VMScript } from 'vm2';
+import { createContext, runInContext } from 'node:vm';
 
 type Options = {
 	code: string;
@@ -11,39 +10,47 @@ export default defineOperationApi<Options>({
 	id: 'exec',
 	handler: async ({ code }, { data, env }) => {
 		const allowedModules = env['FLOWS_EXEC_ALLOWED_MODULES'] ? toArray(env['FLOWS_EXEC_ALLOWED_MODULES']) : [];
-		const allowedModulesBuiltIn: string[] = [];
-		const allowedModulesExternal: string[] = [];
 		const allowedEnv = data['$env'] ?? {};
 
-		const opts: NodeVMOptions = {
-			eval: false,
-			wasm: false,
+		// Create a secure context with limited global access
+		const context = createContext({
+			data,
 			env: allowedEnv,
-		};
+			console: {
+				log: console.log,
+				error: console.error,
+				warn: console.warn,
+			},
+			// Add allowed modules to context
+			require: allowedModules.length > 0 ? createSecureRequire(allowedModules) : undefined,
+		});
 
-		for (const module of allowedModules) {
-			if (isBuiltin(module)) {
-				allowedModulesBuiltIn.push(module);
-			} else {
-				allowedModulesExternal.push(module);
-			}
+		try {
+			// Execute the code in the secure context
+			const result = runInContext(`(async function(data) { ${code} })`, context, {
+				timeout: 30000, // 30 second timeout
+				displayErrors: false,
+			});
+
+			return await result(data);
+		} catch (error) {
+			throw new Error(`Execution error: ${error instanceof Error ? error.message : 'Unknown error'}`);
 		}
-
-		if (allowedModules.length > 0) {
-			opts.require = {
-				builtin: allowedModulesBuiltIn,
-				external: {
-					modules: allowedModulesExternal,
-					transitive: false,
-				},
-			};
-		}
-
-		const vm = new NodeVM(opts);
-
-		const script = new VMScript(code).compile();
-		const fn = await vm.run(script);
-
-		return await fn(data);
 	},
 });
+
+// Helper function to create a secure require function
+function createSecureRequire(allowedModules: string[]) {
+	return (moduleName: string) => {
+		if (!allowedModules.includes(moduleName)) {
+			throw new Error(`Module '${moduleName}' is not allowed`);
+		}
+		
+		// Only allow built-in modules for security
+		if (!isBuiltin(moduleName)) {
+			throw new Error(`Only built-in modules are allowed`);
+		}
+		
+		return require(moduleName);
+	};
+}
